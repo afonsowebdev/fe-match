@@ -1,0 +1,218 @@
+// Schema da base de dados do Fé Match.
+// Convenção: nomes em inglês/camelCase no código, snake_case nas tabelas (@map / @@map).
+// Algumas regras não se conseguem exprimir aqui (ex.: maiores de 18). Essas estão
+// em SQL na migração inicial: prisma/migrations/*_init/migration.sql
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─── Enums ───────────────────────────────────────────────────────────
+
+enum Gender {
+  MASCULINO
+  FEMININO
+}
+
+enum Intention {
+  AMIZADE
+  NAMORO
+  CASAMENTO
+}
+
+enum Denomination {
+  CATOLICA
+  EVANGELICA
+  BATISTA
+  ASSEMBLEIA_DE_DEUS
+  PRESBITERIANA
+  METODISTA
+  ADVENTISTA
+  ORTODOXA
+  OUTRA
+}
+
+enum ChurchAttendance {
+  VARIAS_VEZES_POR_SEMANA
+  SEMANAL
+  QUINZENAL
+  MENSAL
+  OCASIONAL
+}
+
+enum SwipeType {
+  LIKE
+  PASS
+}
+
+enum ReportReason {
+  PERFIL_FALSO
+  MENOR_DE_IDADE
+  ASSEDIO
+  CONTEUDO_IMPROPRIO
+  SPAM
+  OUTRO
+}
+
+// ─── Modelos ─────────────────────────────────────────────────────────
+
+/// Conta: dados privados de acesso. O que os outros veem está em Profile.
+model User {
+  id           String    @id @default(uuid()) @db.Uuid
+  email        String    @unique
+  phone        String?   @unique
+  passwordHash String    @map("password_hash")
+  /// Só a data (sem horas). A BD recusa contas com menos de 18 anos (CHECK na migração).
+  birthDate    DateTime  @map("birth_date") @db.Date
+  isVerified   Boolean   @default(false) @map("is_verified")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  profile Profile?
+  photos  Photo[]
+
+  swipesMade     Swipe[] @relation("SwipesMade")
+  swipesReceived Swipe[] @relation("SwipesReceived")
+
+  matchesAsUser1 Match[] @relation("MatchUser1")
+  matchesAsUser2 Match[] @relation("MatchUser2")
+
+  messagesSent Message[]
+
+  blocksMade     Block[] @relation("BlocksMade")
+  blocksReceived Block[] @relation("BlocksReceived")
+
+  reportsMade     Report[] @relation("ReportsMade")
+  reportsReceived Report[] @relation("ReportsReceived")
+
+  @@map("users")
+}
+
+/// Perfil público (1 para 1 com User).
+model Profile {
+  id               String           @id @default(uuid()) @db.Uuid
+  userId           String           @unique @map("user_id") @db.Uuid
+  name             String           @db.VarChar(50)
+  bio              String?          @db.VarChar(500)
+  gender           Gender
+  denomination     Denomination
+  church           String?          @db.VarChar(100)
+  churchAttendance ChurchAttendance @map("church_attendance")
+  servesInMinistry Boolean          @default(false) @map("serves_in_ministry")
+  /// Qual ministério (só faz sentido se servesInMinistry = true).
+  ministry         String?          @db.VarChar(100)
+  favoriteVerse    String?          @map("favorite_verse") @db.VarChar(300)
+  intention        Intention
+  latitude         Float?
+  longitude        Float?
+  createdAt        DateTime         @default(now()) @map("created_at")
+  updatedAt        DateTime         @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([gender, intention])
+  @@map("profiles")
+}
+
+model Photo {
+  id         String   @id @default(uuid()) @db.Uuid
+  userId     String   @map("user_id") @db.Uuid
+  url        String
+  /// Ordem no perfil (0 = foto principal).
+  position   Int
+  /// Moderação: só fotos aprovadas são mostradas a outros utilizadores.
+  isApproved Boolean  @default(false) @map("is_approved")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, position])
+  @@map("photos")
+}
+
+/// Decisão de um utilizador sobre outro. Só pode haver uma por par (quem → a quem).
+model Swipe {
+  id        String    @id @default(uuid()) @db.Uuid
+  swiperId  String    @map("swiper_id") @db.Uuid
+  swipedId  String    @map("swiped_id") @db.Uuid
+  type      SwipeType
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  swiper User @relation("SwipesMade", fields: [swiperId], references: [id], onDelete: Cascade)
+  swiped User @relation("SwipesReceived", fields: [swipedId], references: [id], onDelete: Cascade)
+
+  @@unique([swiperId, swipedId])
+  @@index([swipedId, type])
+  @@map("swipes")
+}
+
+/// Match entre dois utilizadores. Guardado sempre com user1Id < user2Id
+/// (garantido por CHECK na migração), para o par A–B nunca existir também como B–A.
+model Match {
+  id        String   @id @default(uuid()) @db.Uuid
+  user1Id   String   @map("user1_id") @db.Uuid
+  user2Id   String   @map("user2_id") @db.Uuid
+  /// false quando alguém desfaz o match; mantém-se o histórico em vez de apagar.
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user1    User      @relation("MatchUser1", fields: [user1Id], references: [id], onDelete: Cascade)
+  user2    User      @relation("MatchUser2", fields: [user2Id], references: [id], onDelete: Cascade)
+  messages Message[]
+
+  @@unique([user1Id, user2Id])
+  @@index([user2Id])
+  @@map("matches")
+}
+
+model Message {
+  id        String   @id @default(uuid()) @db.Uuid
+  matchId   String   @map("match_id") @db.Uuid
+  senderId  String   @map("sender_id") @db.Uuid
+  content   String   @db.VarChar(2000)
+  isRead    Boolean  @default(false) @map("is_read")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  match  Match @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  sender User  @relation(fields: [senderId], references: [id], onDelete: Cascade)
+
+  // Para carregar as mensagens de uma conversa por ordem.
+  @@index([matchId, createdAt])
+  @@map("messages")
+}
+
+model Block {
+  id        String   @id @default(uuid()) @db.Uuid
+  blockerId String   @map("blocker_id") @db.Uuid
+  blockedId String   @map("blocked_id") @db.Uuid
+  reason    String?  @db.VarChar(500)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  blocker User @relation("BlocksMade", fields: [blockerId], references: [id], onDelete: Cascade)
+  blocked User @relation("BlocksReceived", fields: [blockedId], references: [id], onDelete: Cascade)
+
+  @@unique([blockerId, blockedId])
+  @@index([blockedId])
+  @@map("blocks")
+}
+
+model Report {
+  id         String       @id @default(uuid()) @db.Uuid
+  reporterId String       @map("reporter_id") @db.Uuid
+  reportedId String       @map("reported_id") @db.Uuid
+  reason     ReportReason
+  /// Explicação livre de quem denuncia.
+  details    String?      @db.VarChar(1000)
+  createdAt  DateTime     @default(now()) @map("created_at")
+
+  reporter User @relation("ReportsMade", fields: [reporterId], references: [id], onDelete: Cascade)
+  reported User @relation("ReportsReceived", fields: [reportedId], references: [id], onDelete: Cascade)
+
+  @@index([reportedId])
+  @@map("reports")
+}

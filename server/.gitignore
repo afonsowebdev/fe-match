@@ -1,0 +1,5 @@
+node_modules
+dist
+.env
+# Cliente gerado pelo Prisma (recria-se com `npx prisma generate`)
+src/generated

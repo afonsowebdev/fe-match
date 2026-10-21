@@ -1,0 +1,4 @@
+# Cada pasta (mobile/, server/) tem o seu próprio .gitignore com as regras específicas.
+.DS_Store
+.env
+node_modules
