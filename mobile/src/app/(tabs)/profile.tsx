@@ -11,7 +11,7 @@ import { addPhotoFromLibrary, editField, photoOptions } from '@/lib/profileEditi
 import { promptText } from '@/lib/prompts';
 import { useActivity } from '@/stores/activity';
 import { MAX_PHOTOS, setInterest, setTopic, useMe } from '@/stores/me';
-import { colors, fontWeight, iconSize, radii, spacing, typography } from '@/theme';
+import { colors, fontFamily, fontWeight, iconSize, radii, spacing, typography } from '@/theme';
 
 // Espaço no fundo da lista para o banner Premium, que fica por cima do conteúdo.
 const PREMIUM_SPACE = 190;
@@ -662,6 +662,7 @@ const styles = StyleSheet.create({
   },
   sectionText: {
     ...typography.subtitle,
+    fontFamily: fontFamily.serif,
     fontSize: 24,
     lineHeight: 30,
     fontWeight: fontWeight.bold,

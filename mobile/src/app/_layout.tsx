@@ -6,7 +6,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { colors } from '@/theme';
 
 // O tema de navegação controla as cores que o React Navigation pinta por trás
-// dos nossos ecrãs (por exemplo durante as transições). Pô-lo a azul evita
+// dos nossos ecrãs (por exemplo durante as transições). Pô-lo com a cor de fundo evita
 // "flashes" brancos.
 const navigationTheme = {
   ...DarkTheme,

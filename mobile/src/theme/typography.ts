@@ -1,8 +1,11 @@
-import type { TextStyle } from 'react-native';
+import { Platform, type TextStyle } from 'react-native';
 
-// Por agora usamos a fonte do sistema (San Francisco no iOS, Roboto no Android).
-// Quando houver uma fonte da marca, carrega-se com expo-font e junta-se
-// `fontFamily` aos estilos de `typography` abaixo.
+// Texto corrido na fonte do sistema (San Francisco no iOS, Roboto no Android).
+// Títulos numa serifada do sistema (Georgia no iOS), que dá ao Fé Match um ar
+// mais editorial e próprio. Quando houver uma fonte da marca, troca-se aqui.
+export const fontFamily = {
+  serif: Platform.select({ ios: 'Georgia', default: 'serif' }),
+} as const;
 
 export const fontSize = {
   xs: 12,
@@ -22,8 +25,18 @@ export const fontWeight = {
 
 // Estilos de texto prontos a usar: `<Text style={typography.title}>`
 export const typography = {
-  display: { fontSize: fontSize.xxl, fontWeight: fontWeight.bold, lineHeight: 44 },
-  title: { fontSize: fontSize.xl, fontWeight: fontWeight.bold, lineHeight: 34 },
+  display: {
+    fontFamily: fontFamily.serif,
+    fontSize: fontSize.xxl,
+    fontWeight: fontWeight.bold,
+    lineHeight: 44,
+  },
+  title: {
+    fontFamily: fontFamily.serif,
+    fontSize: fontSize.xl,
+    fontWeight: fontWeight.bold,
+    lineHeight: 34,
+  },
   subtitle: { fontSize: fontSize.lg, fontWeight: fontWeight.semibold, lineHeight: 26 },
   body: { fontSize: fontSize.md, fontWeight: fontWeight.regular, lineHeight: 24 },
   label: { fontSize: fontSize.sm, fontWeight: fontWeight.medium, lineHeight: 20 },
