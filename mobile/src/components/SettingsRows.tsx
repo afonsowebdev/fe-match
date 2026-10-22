@@ -43,11 +43,13 @@ type NavRowProps = {
   value: string;
   icon?: IconName;
   description?: string;
+  // Valor por preencher: mostra-o em destaque (ex.: "Adicionar").
+  empty?: boolean;
   onPress: () => void;
 };
 
 // Linha que abre uma escolha: rótulo à esquerda, valor atual e seta à direita.
-export function NavRow({ label, value, icon, description, onPress }: NavRowProps) {
+export function NavRow({ label, value, icon, description, empty, onPress }: NavRowProps) {
   return (
     <Pressable
       accessibilityRole="button"
@@ -57,7 +59,7 @@ export function NavRow({ label, value, icon, description, onPress }: NavRowProps
       <View style={styles.text}>
         <View style={styles.navHeader}>
           <Text style={styles.label}>{label}</Text>
-          <Text style={styles.value} numberOfLines={1}>
+          <Text style={[styles.value, empty && styles.valueEmpty]} numberOfLines={1}>
             {value}
           </Text>
         </View>
@@ -80,9 +82,12 @@ const styles = StyleSheet.create({
   },
   value: {
     ...typography.body,
-    fontSize: typography.subtitle.fontSize,
+    fontSize: 17,
     color: colors.textSecondary,
     flexShrink: 1,
+  },
+  valueEmpty: {
+    color: colors.primary,
   },
   divider: {
     height: StyleSheet.hairlineWidth,
@@ -99,7 +104,7 @@ const styles = StyleSheet.create({
   },
   label: {
     ...typography.body,
-    fontSize: typography.subtitle.fontSize,
+    fontSize: 17,
     color: colors.textPrimary,
     flexShrink: 1,
   },
