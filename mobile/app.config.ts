@@ -17,6 +17,8 @@ const config: ExpoConfig = {
   ios: {
     icon: './assets/expo.icon',
     supportsTablet: false,
+    bundleIdentifier: 'pt.fematch.app',
+    appleTeamId: 'UC8573V73K',
   },
   android: {
     adaptiveIcon: {
@@ -29,6 +31,23 @@ const config: ExpoConfig = {
   },
   plugins: [
     'expo-router',
+    // Embute a fonte dos ícones no app (evita os ícones aparecerem vazios ao arrancar).
+    ['expo-font', { fonts: ['./assets/fonts/boxicons.ttf'] }],
+    [
+      'expo-image-picker',
+      {
+        photosPermission: 'O Fé Match precisa de aceder às tuas fotos para as pores no teu perfil.',
+        cameraPermission: false,
+        microphonePermission: false,
+      },
+    ],
+    [
+      'expo-location',
+      {
+        locationWhenInUsePermission:
+          'O Fé Match usa a tua localização para te mostrar pessoas perto de ti.',
+      },
+    ],
     [
       'expo-splash-screen',
       {

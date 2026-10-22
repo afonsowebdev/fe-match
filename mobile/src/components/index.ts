@@ -1,5 +1,10 @@
 export { Button } from './Button';
+export { FloatingTabBar } from './FloatingTabBar';
+export { Icon, type IconName } from './Icon';
 export { Input } from './Input';
 export { Logo } from './Logo';
 export { Placeholder } from './Placeholder';
+export { ProfileCard } from './ProfileCard';
 export { Screen } from './Screen';
+export { Divider, NavRow, SwitchRow } from './SettingsRows';
+export { Slider } from './Slider';

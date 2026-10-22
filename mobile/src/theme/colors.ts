@@ -6,6 +6,8 @@ export const palette = {
   gold: '#D4AF37',
   light: '#F8F9FA',
   red: '#F28B82',
+  sky: '#8AB4F8',
+  goldDeep: '#A8841F',
 } as const;
 
 const withAlpha = (hex: string, alpha: number) => {
@@ -26,6 +28,7 @@ export const colors = {
   onPrimary: palette.navyDeep,
   logo: palette.gold,
   badge: palette.gold,
+  premiumGradient: [palette.gold, palette.goldDeep] as const,
 
   textPrimary: palette.light,
   textSecondary: withAlpha(palette.light, 0.72),
@@ -37,4 +40,8 @@ export const colors = {
   borderFocused: palette.light,
 
   danger: palette.red,
+
+  // Botões redondos por cima das fotos (ecrã Descobrir)
+  overlay: withAlpha(palette.navyDeep, 0.6),
+  superLike: palette.sky,
 } as const;

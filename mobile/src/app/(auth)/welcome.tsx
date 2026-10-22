@@ -1,8 +1,9 @@
 import { router } from 'expo-router';
-import { StyleSheet, Text, View } from 'react-native';
+import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { Button, Logo, Screen } from '@/components';
 import { APP_NAME, APP_SLOGAN } from '@/config';
+import { DEMO_EMAIL, DEMO_PASSWORD, signInAsDemo } from '@/stores/session';
 import { colors, spacing, typography } from '@/theme';
 
 export default function WelcomeScreen() {
@@ -21,6 +22,27 @@ export default function WelcomeScreen() {
           variant="secondary"
           onPress={() => router.push('/sign-in')}
         />
+        <Pressable
+          accessibilityRole="button"
+          onPress={() =>
+            Alert.alert(
+              'Entrar com a conta demo?',
+              `Cria uma conta de teste com o perfil já preenchido.\n\nEmail: ${DEMO_EMAIL}\nPalavra-passe: ${DEMO_PASSWORD}`,
+              [
+                { text: 'Cancelar', style: 'cancel' },
+                {
+                  text: 'Entrar',
+                  onPress: async () => {
+                    await signInAsDemo();
+                    router.replace('/discover');
+                  },
+                },
+              ],
+            )
+          }
+          style={styles.demo}>
+          <Text style={styles.demoText}>Experimentar com a conta demo</Text>
+        </Pressable>
       </View>
     </Screen>
   );
@@ -47,5 +69,14 @@ const styles = StyleSheet.create({
   },
   actions: {
     gap: spacing.sm,
+  },
+  demo: {
+    paddingVertical: spacing.sm,
+  },
+  demoText: {
+    ...typography.label,
+    color: colors.primary,
+    textAlign: 'center',
+    textDecorationLine: 'underline',
   },
 });

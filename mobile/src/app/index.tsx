@@ -4,16 +4,25 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import { Logo, Screen } from '@/components';
 import { APP_NAME, APP_SLOGAN } from '@/config';
+import { hydrateStores } from '@/stores';
+import { sessionStore } from '@/stores/session';
 import { colors, spacing, typography } from '@/theme';
 
 const OPENING_DURATION_MS = 1800;
 
-// Ecrã de abertura. Mais tarde, em vez de esperar um tempo fixo, vai verificar
-// se existe sessão e decidir entre (auth) e (tabs).
+// Ecrã de abertura: carrega os dados guardados no telemóvel e, se houver sessão,
+// entra direto no app; senão vai para o ecrã de boas-vindas.
 export default function OpeningScreen() {
   useEffect(() => {
-    const timer = setTimeout(() => router.replace('/welcome'), OPENING_DURATION_MS);
-    return () => clearTimeout(timer);
+    let cancelled = false;
+    const wait = new Promise((resolve) => setTimeout(resolve, OPENING_DURATION_MS));
+    Promise.all([hydrateStores(), wait]).then(() => {
+      if (cancelled) return;
+      router.replace(sessionStore.get().signedIn ? '/discover' : '/welcome');
+    });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   return (
